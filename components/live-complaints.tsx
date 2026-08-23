@@ -1,0 +1,14 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+type Item = { id:string; displayId:string; category:string; description:string; building:string; floor:string|null; status:'OPEN'|'IN_PROGRESS'|'RESOLVED'; priority:'LOW'|'MEDIUM'|'HIGH'; dueAt:string; asset:{name:string}|null };
+const statuses = ['All','OPEN','IN_PROGRESS','RESOLVED'];
+
+export default function LiveComplaints() {
+  const [items,setItems]=useState<Item[]>([]); const [filter,setFilter]=useState('All'); const [loading,setLoading]=useState(true); const [error,setError]=useState('');
+  const load=async()=>{setLoading(true);setError('');const query=filter==='All'?'':`?status=${filter}`;const response=await fetch(`/api/complaints${query}`);if(!response.ok){setError('Could not load complaints. Please sign in again.');setLoading(false);return;}const data=await response.json();setItems(data.items);setLoading(false);};
+  useEffect(()=>{load();},[filter]);
+  const changeStatus=async(id:string,status:Item['status'])=>{const response=await fetch(`/api/complaints/${id}/status`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status,note:`Updated from the operations console.`})});if(response.ok)load();else setError('Status update was not permitted for this account.');};
+  return <div className="page"><div className="eyebrow">COMPLAINT MANAGEMENT</div><div className="heading-row"><div><h1>All complaints</h1><p>Live records from the society workspace.</p></div></div><div className="tabs">{statuses.map(status=><button className={filter===status?'selected':''} onClick={()=>setFilter(status)} key={status}>{status==='All'?'All reports':status.replace('_',' ')}</button>)}</div>{error&&<p className="red">{error}</p>}<section className="card table-card"><div className="table-head"><span>Complaint</span><span>Status</span><span>Priority</span><span>SLA due</span><span>Action</span></div>{loading?<p className="muted" style={{padding:20}}>Loading complaints…</p>:items.map(item=><div className="table-row" key={item.id}><span><b>{item.displayId}</b><strong>{item.description}</strong><small>{item.asset?.name || item.category} · {item.building}{item.floor?` · Floor ${item.floor}`:''}</small></span><span className={`pill ${item.status==='OPEN'?'open':item.status==='IN_PROGRESS'?'progress':'resolved'}`}>{item.status.replace('_',' ')}</span><span className={`pill ${item.priority==='HIGH'?'high':item.priority==='MEDIUM'?'medium':'low'}`}>{item.priority}</span><span>{new Date(item.dueAt).toLocaleString()}</span><span>{item.status!=='RESOLVED'&&<button className="text-btn" onClick={()=>changeStatus(item.id,item.status==='OPEN'?'IN_PROGRESS':'RESOLVED')}>{item.status==='OPEN'?'Start work':'Resolve'}</button>}</span></div>)}{!loading&&!items.length&&<p className="muted" style={{padding:20}}>No complaints match this filter.</p>}</section></div>;
+}

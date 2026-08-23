@@ -1,0 +1,9 @@
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { currentSession, requireSession } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { apiError } from '@/lib/http';
+import { deliverPendingNotifications } from '@/lib/email';
+const input=z.object({title:z.string().min(3).max(140),content:z.string().min(5).max(4000),important:z.boolean().default(false),expiresAt:z.string().datetime().optional()});
+export async function GET(){try{const user=await currentSession();if(!user)throw new Error('UNAUTHENTICATED');const notices=await db.notice.findMany({where:{societyId:user.societyId,OR:[{expiresAt:null},{expiresAt:{gt:new Date()}}]},include:{createdBy:{select:{name:true}}},orderBy:[{important:'desc'},{createdAt:'desc'}]});return NextResponse.json({items:notices});}catch(error){return apiError(error)}}
+export async function POST(request:Request){try{const user=await requireSession('ADMIN');const body=input.parse(await request.json());const notice=await db.$transaction(async tx=>{const created=await tx.notice.create({data:{societyId:user.societyId,createdById:user.id,title:body.title,content:body.content,important:body.important,expiresAt:body.expiresAt?new Date(body.expiresAt):undefined}});if(body.important){const residents=await tx.user.findMany({where:{societyId:user.societyId,role:'RESIDENT'},select:{id:true}});await tx.notification.createMany({data:residents.map(r=>({userId:r.id,type:'IMPORTANT_NOTICE',entityType:'NOTICE',entityId:created.id,idempotencyKey:`IMPORTANT_NOTICE:${created.id}:${r.id}`})),skipDuplicates:true});}return created;});try { await deliverPendingNotifications(); } catch (deliveryError) { console.error('Notification delivery deferred', deliveryError); }return NextResponse.json(notice,{status:201});}catch(error){return apiError(error)}}

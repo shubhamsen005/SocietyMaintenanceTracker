@@ -1,0 +1,229 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  RESIDENT
+  ADMIN
+}
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+enum PhotoPurpose {
+  REPORTED
+  RESOLUTION
+}
+
+model Society {
+  id String @id @default(cuid())
+  name String
+  timezone String @default("Asia/Kolkata")
+  users User[]
+  buildings Building[]
+  assets Asset[]
+  complaints Complaint[]
+  incidents Incident[]
+  notices Notice[]
+  slaConfigs SLAConfig[]
+  invites Invite[]
+  createdAt DateTime @default(now())
+}
+model Invite {
+  id String @id @default(cuid())
+  societyId String
+  society Society @relation(fields:[societyId],references:[id])
+  code String @unique
+  unit String
+  expiresAt DateTime
+  usedAt DateTime?
+  usedById String?
+  createdAt DateTime @default(now())
+  @@index([societyId,expiresAt])
+}
+model User {
+  id String @id @default(cuid())
+  societyId String
+  society Society @relation(fields:[societyId],references:[id])
+  email String @unique
+  name String
+  passwordHash String
+  role Role @default(RESIDENT)
+  unit String?
+  complaints Complaint[] @relation("Reporter")
+  history ComplaintHistory[] @relation("Actor")
+  notices Notice[] @relation("NoticeAuthor")
+  notifications Notification[]
+  createdAt DateTime @default(now())
+  @@index([societyId,role])
+}
+model Building {
+  id String @id @default(cuid())
+  societyId String
+  society Society @relation(fields:[societyId],references:[id])
+  name String
+  code String
+  assets Asset[]
+  @@unique([societyId,code])
+}
+model Asset {
+  id String @id @default(cuid())
+  societyId String
+  buildingId String?
+  society Society @relation(fields:[societyId],references:[id])
+  building Building? @relation(fields:[buildingId],references:[id])
+  code String @unique
+  name String
+  category String
+  location String
+  qrToken String @unique
+  status String @default("ACTIVE")
+  installedAt DateTime?
+  lastMaintenanceAt DateTime?
+  healthScore Int @default(100)
+  complaints Complaint[]
+  createdAt DateTime @default(now())
+  @@index([societyId,category])
+}
+model Complaint {
+  id String @id @default(cuid())
+  displayId String @unique
+  societyId String
+  reporterId String
+  assetId String?
+  society Society @relation(fields:[societyId],references:[id])
+  reporter User @relation("Reporter",fields:[reporterId],references:[id])
+  asset Asset? @relation(fields:[assetId],references:[id])
+  category String
+  description String
+  building String
+  floor String?
+  unit String?
+  status ComplaintStatus @default(OPEN)
+  priority Priority @default(MEDIUM)
+  openedAt DateTime @default(now())
+  dueAt DateTime
+  resolvedAt DateTime?
+  resolutionNote String?
+  histories ComplaintHistory[]
+  photos ComplaintPhoto[]
+  incidentLinks IncidentComplaint[]
+  feedback ResidentFeedback?
+  notifications Notification[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([societyId,status,dueAt])
+  @@index([societyId,category,createdAt])
+  @@index([assetId,createdAt])
+}
+model ComplaintHistory {
+  id String @id @default(cuid())
+  complaintId String
+  actorId String
+  eventType String
+  oldStatus ComplaintStatus?
+  newStatus ComplaintStatus?
+  note String?
+  metadata Json?
+  complaint Complaint @relation(fields:[complaintId],references:[id],onDelete:Restrict)
+  actor User @relation("Actor",fields:[actorId],references:[id])
+  createdAt DateTime @default(now())
+  @@index([complaintId,createdAt])
+}
+model ComplaintPhoto {
+  id String @id @default(cuid())
+  complaintId String
+  storageKey String
+  mimeType String
+  bytes Int
+  purpose PhotoPurpose @default(REPORTED)
+  complaint Complaint @relation(fields:[complaintId],references:[id],onDelete:Restrict)
+  createdAt DateTime @default(now())
+}
+model Incident {
+  id String @id @default(cuid())
+  displayId String @unique
+  societyId String
+  society Society @relation(fields:[societyId],references:[id])
+  title String
+  status ComplaintStatus @default(OPEN)
+  priority Priority @default(MEDIUM)
+  riskScore Int @default(0)
+  assetId String?
+  links IncidentComplaint[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([societyId,status,riskScore])
+}
+model IncidentComplaint {
+  incidentId String
+  complaintId String
+  confidence Int
+  reasons Json
+  incident Incident @relation(fields:[incidentId],references:[id],onDelete:Restrict)
+  complaint Complaint @relation(fields:[complaintId],references:[id],onDelete:Restrict)
+  @@id([incidentId,complaintId])
+}
+model Notice {
+  id String @id @default(cuid())
+  societyId String
+  createdById String
+  society Society @relation(fields:[societyId],references:[id])
+  createdBy User @relation("NoticeAuthor",fields:[createdById],references:[id])
+  title String
+  content String
+  important Boolean @default(false)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([societyId,important,createdAt])
+}
+model Notification {
+  id String @id @default(cuid())
+  userId String
+  complaintId String?
+  type String
+  entityType String
+  entityId String
+  idempotencyKey String @unique
+  status NotificationStatus @default(PENDING)
+  sentAt DateTime?
+  error String?
+  attempts Int @default(0)
+  user User @relation(fields:[userId],references:[id])
+  complaint Complaint? @relation(fields:[complaintId],references:[id])
+  createdAt DateTime @default(now())
+  @@index([status,createdAt])
+}
+model SLAConfig {
+  id String @id @default(cuid())
+  societyId String
+  society Society @relation(fields:[societyId],references:[id])
+  category String?
+  priority Priority?
+  thresholdHours Int
+  @@unique([societyId,category,priority])
+}
+model ResidentFeedback {
+  id String @id @default(cuid())
+  complaintId String @unique
+  resolved Boolean
+  note String?
+  createdAt DateTime @default(now())
+  complaint Complaint @relation(fields:[complaintId],references:[id],onDelete:Restrict)
+}

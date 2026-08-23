@@ -1,0 +1,2 @@
+import { NextResponse } from 'next/server';
+export function apiError(error: unknown) { const message = error instanceof Error ? error.message : 'SERVER_ERROR'; const status = message === 'UNAUTHENTICATED' ? 401 : message === 'FORBIDDEN' ? 403 : message === 'NOT_FOUND' ? 404 : 400; return NextResponse.json({ error: message === 'SERVER_ERROR' ? 'Unable to process request.' : message }, { status }); }
