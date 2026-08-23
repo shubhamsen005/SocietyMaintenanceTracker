@@ -3,9 +3,10 @@ node_modules
 .env
 .env.local
 coverage
-uploads
+/uploads/
 
 .vercel
 .vercel-cli
 .env*
+!.env.example
 *.log
