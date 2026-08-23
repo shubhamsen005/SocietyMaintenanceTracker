@@ -5,7 +5,7 @@ import { apiError } from '@/lib/http';
 
 export async function GET() {
   try {
-    const user = await requireSession('ADMIN');
+    const user = await requireSession();
     const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const [assets, locations, feedback, resolved] = await Promise.all([
       db.complaint.groupBy({ by: ['assetId'], where: { societyId: user.societyId, createdAt: { gte: since } }, _count: { _all: true }, orderBy: { _count: { assetId: 'desc' } }, take: 5 }),
