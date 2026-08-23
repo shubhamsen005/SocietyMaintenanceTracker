@@ -17,6 +17,7 @@ All endpoints return typed JSON and use the authenticated session; resident owne
 | GET | `/api/assets` | Asset passports |
 | GET | `/api/dashboard/admin` | KPI and operational aggregates |
 | GET | `/api/analytics/maintenance` | Recurrence, heatmap and health score |
+| GET/PUT | `/api/sla-config` | Admin list/update of category and priority overdue thresholds |
 | GET/POST | `/api/notices` | Pinned notices and admin creation |
 
 The complaint list accepts `page`, `limit`, `status`, and `category`. Invalid payloads return `400`, unauthenticated requests `401`, forbidden operations `403`, and absent resources `404`.

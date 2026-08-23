@@ -8,7 +8,7 @@ Complaint status is `OPEN`, `IN_PROGRESS`, or `RESOLVED`. A status transition is
 
 ## SLA and overdue detection
 
-At creation, the service resolves a priority-based SLA threshold and stores `openedAt` and `dueAt`; priority changes recalculate the deadline and append an audit event. Queries calculate remaining time, percentage consumed and overdue duration from UTC timestamps instead of relying on a stale boolean. The indexed `(societyId, status, dueAt)` query powers overdue dashboard counts. Incident risk scores and matching reasons give administrators a transparent prioritization signal alongside the SLA deadline.
+Admins configure thresholds by category and priority in workflow settings. At creation, the service resolves that SLA override (or a priority default) and stores `openedAt` and `dueAt`; priority changes recalculate the deadline and append an audit event. Queries calculate remaining time, percentage consumed and overdue duration from UTC timestamps instead of relying on a stale boolean. The indexed `(societyId, status, dueAt)` query powers overdue dashboard counts, and the admin worklist sorts unresolved overdue items first. Incident risk scores and matching reasons give administrators a transparent prioritization signal alongside the SLA deadline.
 
 ## Photo handling
 

@@ -188,6 +188,7 @@ npm run build
 | `/api/assets` | `GET` | Authenticated | Fetches all society assets with health scores |
 | `/api/assets/[id]` | `GET` | Authenticated | Fetches asset details, passport URL, and QR data URL |
 | `/api/dashboard/admin` | `GET` | Admin | Fetches administrative stats, status breakdowns, and overdue counts |
+| `/api/sla-config` | `GET` / `PUT` | Admin | Lists and updates category/priority overdue thresholds |
 
 ---
 

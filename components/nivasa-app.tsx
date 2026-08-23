@@ -12,6 +12,7 @@ import LiveResidentComplaints from '@/components/live-resident-complaints';
 import LiveIntelligence from '@/components/live-intelligence';
 import CommandPalette from '@/components/command-palette';
 import InviteManager from '@/components/invite-manager';
+import SlaManager from '@/components/sla-manager';
 
 const statusClass: Record<Status,string> = { OPEN:'open', IN_PROGRESS:'progress', RESOLVED:'resolved' };
 const nav = [{label:'Command center',icon:LayoutDashboard},{label:'Complaints',icon:FileText},{label:'Incidents',icon:AlertTriangle},{label:'Assets',icon:Building2},{label:'Intelligence',icon:Sparkles},{label:'Notice board',icon:Bell}];
@@ -164,7 +165,7 @@ export default function NivasaApp({initialView='dashboard',resident=false,userNa
         {view==='assets' && <LiveAssets/>}
         {view==='intelligence' && <LiveIntelligence/>}
         {view==='notice' && <LiveNotices admin={!resident}/>} 
-        {view==='settings' && !resident && <InviteManager/>}
+        {view==='settings' && !resident && <><SlaManager/><InviteManager/></>}
       </div>
       <CommandPalette open={palette} onClose={()=>setPalette(false)} onCreate={()=>setCreate(true)} onView={setView}/>
       {selected && <Detail item={selected} close={()=>setSelected(null)} notify={notify}/>}
