@@ -26,6 +26,16 @@ const initialNotifications = [
   { id: '4', title: 'Preventive maintenance complete', sub: 'Generator 1 monthly inspection verified', time: '1d ago', unread: false, type: 'asset' }
 ];
 
+type ApiNotification = {
+  id: string;
+  type: string;
+  entityType: string;
+  entityId: string;
+  error?: string | null;
+  createdAt: string;
+  status: string;
+};
+
 export default function NivasaApp({initialView='dashboard',resident=false}:{initialView?:string;resident?:boolean}) {
  const [view,setView]=useState(initialView), [query,setQuery]=useState(''), [filter,setFilter]=useState('All'), [selected,setSelected]=useState<Complaint|null>(null), [create,setCreate]=useState(false), [step,setStep]=useState(1), [toast,setToast]=useState(''), [palette,setPalette]=useState(false);
  const [notifOpen, setNotifOpen] = useState(false);
@@ -38,7 +48,7 @@ export default function NivasaApp({initialView='dashboard',resident=false}:{init
      .then(r => r.ok ? r.json() : null)
      .then(data => {
        if (data?.items?.length) {
-         setItems(data.items.map((n: any) => ({
+         setItems(data.items.map((n: ApiNotification) => ({
            id: n.id,
            title: n.type.replace(/_/g, ' '),
            sub: n.error || `Notification for ${n.entityType} ${n.entityId}`,

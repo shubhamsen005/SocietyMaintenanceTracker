@@ -180,8 +180,8 @@ npm run build
 | `/api/auth/login` | `POST` | Public | Authenticates user and sets session cookie |
 | `/api/auth/register` | `POST` | Public | Registers a new resident user |
 | `/api/complaints` | `GET` / `POST` | Authenticated | Fetches or creates complaints |
-| `/api/complaints/[id]/status` | `POST` | Admin | Updates status (`OPEN`, `IN_PROGRESS`, `RESOLVED`) & logs note |
-| `/api/complaints/[id]/priority` | `POST` | Admin | Updates complaint priority (`LOW`, `MEDIUM`, `HIGH`) |
+| `/api/complaints/[id]/status` | `PATCH` | Admin | Updates status (`OPEN`, `IN_PROGRESS`, `RESOLVED`) & logs note |
+| `/api/complaints/[id]/priority` | `PATCH` | Admin | Updates complaint priority (`LOW`, `MEDIUM`, `HIGH`) |
 | `/api/complaints/[id]/feedback` | `POST` | Resident | Submits resident verification or reopening feedback |
 | `/api/notices` | `GET` / `POST` | Admin/Resident | Reads or creates society notice announcements |
 | `/api/notifications` | `GET` | Authenticated | Fetches user notifications and unread badge count |

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Priority, Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { currentSession, requireSession } from '@/lib/auth';
+import { requireSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { apiError } from '@/lib/http';
 import { dueAt } from '@/lib/sla';
